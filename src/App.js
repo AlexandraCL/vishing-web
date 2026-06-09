@@ -18,7 +18,6 @@ const BACKEND_URL = "https://vishing-call-detection-server.onrender.com";
 function emitirAlerta() {
     try {
         const ctx = new(window.AudioContext || window.webkitAudioContext)();
-
         for (let i = 0; i < 3; i++) {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -32,10 +31,7 @@ function emitirAlerta() {
             osc.start(inicio);
             osc.stop(inicio + 0.25);
         }
-
-        if (navigator.vibrate) {
-            navigator.vibrate([300, 150, 300]);
-        }
+        if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
     } catch (e) {
         console.log("Audio no disponible:", e);
     }
@@ -151,7 +147,7 @@ function SplashScreen({ onContinuar }) {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 100,
+                gap: 40,
                 padding: "60px 36px 48px",
                 position: "relative",
                 overflow: "hidden"
@@ -378,18 +374,12 @@ function Monitoreo({ onGuardar, mobile }) {
     const chunksRef = useRef([]);
     const timerRef = useRef(null);
     const loopRef = useRef(null);
-    const analisisFinalizadoRef = useRef(false); // Ref para bloquear respuestas tardías del backend
+    const analisisFinalizadoRef = useRef(false);
+
+    useEffect(() => { analisisFinalizadoRef.current = analisisFinalizado; }, [analisisFinalizado]);
 
     useEffect(() => {
-        analisisFinalizadoRef.current = analisisFinalizado;
-    }, [analisisFinalizado]);
-
-    useEffect(() => {
-        if (grabando) {
-            timerRef.current = setInterval(() => setSegundos(s => s + 1), 1000);
-        } else {
-            clearInterval(timerRef.current);
-        }
+        if (grabando) { timerRef.current = setInterval(() => setSegundos(s => s + 1), 1000); } else { clearInterval(timerRef.current); }
         return () => clearInterval(timerRef.current);
     }, [grabando]);
 
@@ -404,19 +394,14 @@ function Monitoreo({ onGuardar, mobile }) {
             const res = await fetch(`${BACKEND_URL}/analyze_audio/`, { method: "POST", body: formData });
             if (!res.ok) throw new Error(`Error ${res.status}`);
             const data = await res.json();
-
-            // Si el análisis ya fue detenido, ignorar respuestas tardías del backend
             if (analisisFinalizadoRef.current) return;
-
             const nuevoRiesgo = Math.round(data.riesgo || 0);
             setRiesgo(nuevoRiesgo);
             if (nuevoRiesgo >= 75) emitirAlerta();
             setTranscripcion(data.transcripcion || "");
         } catch (e) {
             setError("No se pudo conectar con el servidor. Verifica la URL del backend.");
-        } finally {
-            setCargando(false);
-        }
+        } finally { setCargando(false); }
     }, []);
 
     const iniciarLoop = useCallback(async() => {
@@ -443,7 +428,6 @@ function Monitoreo({ onGuardar, mobile }) {
 
     const toggleGrabacion = () => {
         if (!grabando) {
-            // Reiniciar estado al iniciar nueva grabación
             setAnalisisFinalizado(false);
             analisisFinalizadoRef.current = false;
             setGrabando(true);
@@ -452,7 +436,6 @@ function Monitoreo({ onGuardar, mobile }) {
             setTranscripcion("");
             setError("");
         } else {
-            // Marcar como finalizado para congelar el gauge y bloquear respuestas tardías
             setAnalisisFinalizado(true);
             analisisFinalizadoRef.current = true;
             setGrabando(false);
@@ -461,7 +444,6 @@ function Monitoreo({ onGuardar, mobile }) {
             if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
                 mediaRecorderRef.current.stop();
             }
-            // Guardar automáticamente al detener grabación
             onGuardar({
                 fecha: new Date().toLocaleString("es-MX"),
                 estado: riesgo >= 75 ? "Sospechoso" : "Seguro",
@@ -486,9 +468,7 @@ function Monitoreo({ onGuardar, mobile }) {
             h2 style = {
                 { fontSize: mobile ? 18 : 24, fontWeight: 800, color: C.blanco }
             } > Monitoreo en tiempo real < /h2> < /
-            div >
-
-            <
+            div > <
             div style = {
                 { margin: "0 16px 8px", ...boxStyle }
             } >
@@ -498,9 +478,7 @@ function Monitoreo({ onGuardar, mobile }) {
             p style = {
                 { textAlign: "center", fontSize: 28, fontWeight: 800, color: C.blanco, marginTop: 8 }
             } > { formatTime(segundos) } < /p> < /
-            div >
-
-            <
+            div > <
             div style = {
                 { padding: "0 16px 12px" }
             } >
@@ -522,18 +500,14 @@ function Monitoreo({ onGuardar, mobile }) {
                 }
             } > { grabando ? "⏹ Detener grabación" : "🎙 Grabar llamada" } <
             /button> < /
-            div >
-
-            {
+            div > {
                 error && ( <
                     div style = {
                         { margin: "0 16px 12px", padding: "12px 16px", background: "rgba(229,57,53,0.15)", borderRadius: 12, border: "1px solid rgba(229,57,53,0.3)", color: "#ff8a80", fontSize: 13 }
                     } > { error } <
                     /div>
                 )
-            }
-
-            <
+            } <
             div style = {
                 { margin: "0 16px", ...boxStyle }
             } >
@@ -553,27 +527,22 @@ function Monitoreo({ onGuardar, mobile }) {
                 /div>
             )
         } <
-        /div>
-
-    {
-        transcripcion && ( <
-            div style = {
-                { margin: "0 16px", ...boxStyle }
-            } >
-            <
-            p style = {
-                { fontWeight: 700, fontSize: 15, color: C.blanco, marginBottom: 10 }
-            } > Transcripción < /p> <
-            p style = {
-                { fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, fontStyle: "italic" }
-            } > "{transcripcion}" < /p> < /
-            div >
-        )
-    }
-
-
-    <
-    /div>
+        /div> {
+    transcripcion && ( <
+        div style = {
+            { margin: "0 16px", ...boxStyle }
+        } >
+        <
+        p style = {
+            { fontWeight: 700, fontSize: 15, color: C.blanco, marginBottom: 10 }
+        } > Transcripción < /p> <
+        p style = {
+            { fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, fontStyle: "italic" }
+        } > "{transcripcion}" < /p> < /
+        div >
+    )
+} <
+/div>
 );
 }
 
@@ -655,20 +624,16 @@ function Historial({ lista, onLimpiar, mobile }) {
 function Configuracion({ config, onChange, mobile }) {
     const boxStyle = { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "16px 20px", marginBottom: 14 };
 
-    // Solicitar permiso de micrófono al activar el toggle
     const handleMicrofonoToggle = async() => {
         if (!config.microfono) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // Detener el stream inmediatamente, solo se necesitaba el popup de permiso
                 stream.getTracks().forEach(track => track.stop());
                 onChange("microfono", true);
             } catch (e) {
-                // El usuario denegó el permiso — dejar toggle en false
                 onChange("microfono", false);
             }
         } else {
-            // No se puede revocar programáticamente, solo apagar el toggle visualmente
             onChange("microfono", false);
         }
     };
@@ -695,7 +660,6 @@ function Configuracion({ config, onChange, mobile }) {
         div style = {
             { padding: "0 16px" }
         } >
-
         <
         div style = {
             {...boxStyle }
@@ -768,20 +732,20 @@ function Configuracion({ config, onChange, mobile }) {
                     }
                     /> < /
                     div > <
-                    /div> } {
-                    item.key === "privacidad" && ( <
-                        p style = {
-                            { fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 8, lineHeight: 1.5 }
-                        } >
-                        Los permisos de privacidad son gestionados por el navegador.Para revocarlos, ve a la configuración de tu navegador. <
-                        /p>
-                    )
-                } {
+                    /div> {
                     item.key === "microfono" && ( <
                         p style = {
                             { fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 8, lineHeight: 1.5 }
                         } >
                         Al activar, el navegador solicitará acceso al micrófono.Para revocar el permiso, hazlo desde la configuración de tu navegador. <
+                        /p>
+                    )
+                } {
+                    item.key === "privacidad" && ( <
+                        p style = {
+                            { fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 8, lineHeight: 1.5 }
+                        } >
+                        Los permisos de privacidad son gestionados por el navegador.Para revocarlos, ve a la configuración de tu navegador. <
                         /p>
                     )
                 } <
@@ -794,22 +758,16 @@ function Configuracion({ config, onChange, mobile }) {
         <
         p style = {
             { fontWeight: 700, fontSize: 15, color: C.blanco, marginBottom: 12 }
-        } > Acerca de < /p>
-
-    <
+        } > Acerca de < /p> <
     p style = {
             { fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, marginBottom: 14 }
         } >
         Herramienta basada en Inteligencia Artificial para detectar intentos de fraude bancario durante llamadas telefónicas. <
-        /p>
-
-    <
+        /p> <
     div style = {
         { height: 1, background: "rgba(255,255,255,0.08)", marginBottom: 4 }
     }
-    />
-
-    <
+    /> <
     div >
         <
         div onClick = {
@@ -827,9 +785,9 @@ function Configuracion({ config, onChange, mobile }) {
         Desarrolladores <
         /p> <
     span style = {
-        { fontSize: 12, color: "rgba(255,255,255,0.35)", transition: "transform 0.2s", display: "inline-block", transform: config._devExpanded ? "rotate(180deg)" : "rotate(0deg)" }
-    } > ▼ < /span> < /
-    div > {
+            { fontSize: 12, color: "rgba(255,255,255,0.35)", transition: "transform 0.2s", display: "inline-block", transform: config._devExpanded ? "rotate(180deg)" : "rotate(0deg)" }
+        } > ▼ < /span> < /
+        div > {
             config._devExpanded && ( <
                 div style = {
                     { paddingBottom: 8 }
@@ -846,11 +804,9 @@ function Configuracion({ config, onChange, mobile }) {
             )
         } <
         /div> < /
-    div >
-
-        <
+        div > <
         /div> < /
-    div >
+        div >
 );
 }
 
@@ -873,7 +829,6 @@ export default function App() {
         setPantalla("main");
     };
 
-    // Guardar en historial sin redirigir — el usuario decide cuándo ir al historial
     const handleGuardar = (entrada) => {
         setHistorial(prev => [entrada, ...prev]);
     };
@@ -889,13 +844,9 @@ export default function App() {
         );
         switch (navActiva) {
             case "inicio":
-                return mobile ?
-                    <
-                    PanelPrincipalMovil onNav = { handleNav }
+                return mobile ? < PanelPrincipalMovil onNav = { handleNav }
                 historialCount = { historial.length }
-                />: < PanelPrincipalDesktop onNav = { handleNav }
-                historialCount = { historial.length }
-                />;
+                /> : <PanelPrincipalDesktop onNav={handleNav} historialCount={historial.length} / > ;
             case "monitoreo":
                 return <Monitoreo onGuardar = { handleGuardar }
                 mobile = { mobile }
@@ -908,13 +859,9 @@ export default function App() {
                 mobile = { mobile }
                 />;
             default:
-                return mobile ?
-                    <
-                    PanelPrincipalMovil onNav = { handleNav }
+                return mobile ? < PanelPrincipalMovil onNav = { handleNav }
                 historialCount = { historial.length }
-                />: < PanelPrincipalDesktop onNav = { handleNav }
-                historialCount = { historial.length }
-                />;
+                /> : <PanelPrincipalDesktop onNav={handleNav} historialCount={historial.length} / > ;
         }
     };
 
@@ -927,92 +874,87 @@ export default function App() {
         SplashScreen onContinuar = {
             () => setPantalla("main")
         }
-        /> < / >
+        /> < /
+        >
     );
 
     return ( <
-        >
-        <
-        link href = "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&display=swap"
-        rel = "stylesheet" / >
-        <
-        div style = {
-            { minHeight: "100vh", background: "linear-gradient(135deg,#1A1A2E 0%,#2D1B69 40%,#4A2085 70%,#6C3FC5 100%)", fontFamily: "'DM Sans',sans-serif" }
-        } >
-
-        {!mobile && ( <
-                div style = {
-                    { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 48px", borderBottom: "1px solid rgba(255,255,255,0.08)" }
-                } >
-                <
-                div style = {
-                    { display: "flex", alignItems: "center", gap: 12 }
-                } >
-                <
-                img src = "/logo.png"
-                alt = "logo"
-                style = {
-                    { width: 40, height: 40, borderRadius: 12, objectFit: "contain" }
-                }
-                /> <
-                p style = {
-                    { color: C.blanco, fontWeight: 700, fontSize: 16 }
-                } > Vishing Call Detection < /p> < /
-                div > <
-                div style = {
-                    { display: "flex", gap: 8 }
-                } > {
-                    navItems.map(item => {
-                        const activo = navActiva === item.id && pantalla === "main";
-                        return ( <
-                            button key = { item.id }
-                            onClick = {
-                                () => handleNav(item.id)
-                            }
-                            style = {
-                                {
-                                    padding: "8px 20px",
-                                    borderRadius: 22,
-                                    background: activo ? "rgba(123,97,255,0.3)" : "rgba(255,255,255,0.07)",
-                                    border: activo ? "1px solid rgba(123,97,255,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                                    color: activo ? C.blanco : "rgba(255,255,255,0.6)",
-                                    fontSize: 14,
-                                    fontWeight: activo ? 700 : 500,
-                                    cursor: "pointer",
-                                    transition: "all 0.2s"
-                                }
-                            } > { item.icon } { item.label } <
-                            /button>
-                        );
-                    })
-                } <
-                button onClick = {
-                    () => setPantalla("configuracion")
-                }
-                style = {
-                    {
-                        padding: "8px 20px",
-                        borderRadius: 22,
-                        background: pantalla === "configuracion" ? "rgba(0,150,136,0.3)" : "rgba(255,255,255,0.07)",
-                        border: pantalla === "configuracion" ? "1px solid rgba(0,150,136,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                        color: pantalla === "configuracion" ? C.blanco : "rgba(255,255,255,0.6)",
-                        fontSize: 14,
-                        fontWeight: 500,
-                        cursor: "pointer"
+            >
+            <
+            link href = "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&display=swap"
+            rel = "stylesheet" / >
+            <
+            div style = {
+                { minHeight: "100vh", background: "linear-gradient(135deg,#1A1A2E 0%,#2D1B69 40%,#4A2085 70%,#6C3FC5 100%)", fontFamily: "'DM Sans',sans-serif" }
+            } > {!mobile && ( <
+                    div style = {
+                        { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 48px", borderBottom: "1px solid rgba(255,255,255,0.08)" }
+                    } >
+                    <
+                    div style = {
+                        { display: "flex", alignItems: "center", gap: 12 }
+                    } >
+                    <
+                    img src = "/logo.png"
+                    alt = "logo"
+                    style = {
+                        { width: 40, height: 40, borderRadius: 12, objectFit: "contain" }
                     }
-                } > ⚙️Configuración <
-                /button> < /
-                div > <
-                /div>
-            )
-        }
-
-        <
-        div style = {
-            { paddingBottom: mobile ? 72 : 0 }
-        } > { renderContenido() } < /div>
-
-        {
+                    /> <
+                    p style = {
+                        { color: C.blanco, fontWeight: 700, fontSize: 16 }
+                    } > Vishing Call Detection < /p> < /
+                    div > <
+                    div style = {
+                        { display: "flex", gap: 8 }
+                    } > {
+                        navItems.map(item => {
+                            const activo = navActiva === item.id && pantalla === "main";
+                            return ( <
+                                button key = { item.id }
+                                onClick = {
+                                    () => handleNav(item.id)
+                                }
+                                style = {
+                                    {
+                                        padding: "8px 20px",
+                                        borderRadius: 22,
+                                        background: activo ? "rgba(123,97,255,0.3)" : "rgba(255,255,255,0.07)",
+                                        border: activo ? "1px solid rgba(123,97,255,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                                        color: activo ? C.blanco : "rgba(255,255,255,0.6)",
+                                        fontSize: 14,
+                                        fontWeight: activo ? 700 : 500,
+                                        cursor: "pointer",
+                                        transition: "all 0.2s"
+                                    }
+                                } > { item.icon } { item.label } <
+                                /button>
+                            );
+                        })
+                    } <
+                    button onClick = {
+                        () => setPantalla("configuracion")
+                    }
+                    style = {
+                        {
+                            padding: "8px 20px",
+                            borderRadius: 22,
+                            background: pantalla === "configuracion" ? "rgba(0,150,136,0.3)" : "rgba(255,255,255,0.07)",
+                            border: pantalla === "configuracion" ? "1px solid rgba(0,150,136,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                            color: pantalla === "configuracion" ? C.blanco : "rgba(255,255,255,0.6)",
+                            fontSize: 14,
+                            fontWeight: 500,
+                            cursor: "pointer"
+                        }
+                    } > ⚙️Configuración <
+                    /button> < /
+                    div > <
+                    /div>
+                )
+            } <
+            div style = {
+                { paddingBottom: mobile ? 72 : 0 }
+            } > { renderContenido() } < /div> {
             mobile && pantalla !== "configuracion" && ( <
                 div style = {
                     { position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(26,26,46,0.95)", backdropFilter: "blur(10px)", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", height: 64, zIndex: 100 }
@@ -1044,9 +986,7 @@ export default function App() {
                 } <
                 /div>
             )
-        }
-
-        {
+        } {
             mobile && pantalla === "configuracion" && ( <
                 button onClick = {
                     () => {
@@ -1059,9 +999,8 @@ export default function App() {
                 } > ←Atrás <
                 /button>
             )
-        }
-
-        <
-        /div> < / >
-    );
+        } <
+        /div> < /
+        >
+);
 }
