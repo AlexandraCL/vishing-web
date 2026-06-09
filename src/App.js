@@ -555,7 +555,7 @@ function Monitoreo({ onGuardar, mobile }) {
         } <
         /div>
 
-    { /* Solo transcripción, palabras clave eliminadas */ } {
+    {
         transcripcion && ( <
             div style = {
                 { margin: "0 16px", ...boxStyle }
@@ -696,7 +696,7 @@ function Configuracion({ config, onChange, mobile }) {
             { padding: "0 16px" }
         } >
 
-        { /* Umbral de detección */ } <
+        <
         div style = {
             {...boxStyle }
         } >
@@ -740,7 +740,7 @@ function Configuracion({ config, onChange, mobile }) {
         div > <
         /div>
 
-        { /* Toggles */ } {
+        {
             items.map(item => ( <
                     div key = { item.key }
                     style = {
@@ -768,7 +768,7 @@ function Configuracion({ config, onChange, mobile }) {
                     }
                     /> < /
                     div > <
-                    /div> {/ * Nota informativa para Permisos de privacidad * /} {
+                    /div> } {
                     item.key === "privacidad" && ( <
                         p style = {
                             { fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 8, lineHeight: 1.5 }
@@ -776,7 +776,7 @@ function Configuracion({ config, onChange, mobile }) {
                         Los permisos de privacidad son gestionados por el navegador.Para revocarlos, ve a la configuración de tu navegador. <
                         /p>
                     )
-                } { /* Nota informativa para Permisos de micrófono */ } {
+                } {
                     item.key === "microfono" && ( <
                         p style = {
                             { fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 8, lineHeight: 1.5 }
@@ -789,14 +789,14 @@ function Configuracion({ config, onChange, mobile }) {
             ))
     }
 
-    { /* Acerca de */ } <
+    <
     div style = { boxStyle } >
         <
         p style = {
             { fontWeight: 700, fontSize: 15, color: C.blanco, marginBottom: 12 }
         } > Acerca de < /p>
 
-    { /* Descripción del proyecto — texto fijo */ } <
+    <
     p style = {
             { fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, marginBottom: 14 }
         } >
@@ -809,7 +809,7 @@ function Configuracion({ config, onChange, mobile }) {
     }
     />
 
-    { /* Desarrolladores — expandible */ } <
+    <
     div >
         <
         div onClick = {
