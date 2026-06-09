@@ -768,7 +768,7 @@ function Configuracion({ config, onChange, mobile }) {
                     }
                     /> < /
                     div > <
-                    /div> { / * Nota informativa para Permisos de privacidad * / } {
+                    /div> {/ * Nota informativa para Permisos de privacidad * /} {
                     item.key === "privacidad" && ( <
                         p style = {
                             { fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 8, lineHeight: 1.5 }
